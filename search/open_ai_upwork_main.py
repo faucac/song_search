@@ -309,10 +309,12 @@ def main_proc(input_data):
     print(f'There are {len(final_output_df)} records in the output CSV...')
 
     output_fname = f'sample_keywords_output_{datetime.now().strftime("%Y%m%d-%H%M%S")}.csv'
+    output_path = os.path.join(output_dir, output_fname)
+    
+    print(f"Saving CSV file to : {output_path}")
 
-    print(f"Saving CSV file to : {os.path.join(output_dir, output_fname)}")
-
-    final_output_df.to_csv(os.path.join(output_dir, output_fname), sep=';', index=False)
+    if not os.path.exists(output_path): os.mkdir(output_path)
+    final_output_df.to_csv(output_path, sep=';', index=False)
     return output_fname
 
 '''
