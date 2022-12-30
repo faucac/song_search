@@ -3,7 +3,7 @@ search/__pycache__/
 main_local.py
 __pycache__/
 test.py
-instance/
+#instance/
 model_outputs/
-input.csv
-sd_app/keys.txt
+#input.csv
+#sd_app/keys.txt
