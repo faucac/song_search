@@ -112,7 +112,7 @@ def search():
 
                     thread = threading.Thread(target = background_search, args=(input_data, limit_st, offset, new_search.id))
 
-                    if not flag.is_set():
+                    if not flag_bkg.is_set():
                         background_search(input_data, limit_st, offset, time_to_complete)
                         flash(f'Search running in background. Check the search history in about {int(time_to_complete/60)+1} minutes for the download link.', category='success')
                     else:
