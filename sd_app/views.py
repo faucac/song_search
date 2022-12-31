@@ -41,7 +41,6 @@ def add_row(input_data, new_row):
         input_data = pd.concat([input_data, pd.DataFrame(new_row, index=[1])], ignore_index=True)
         return True, input_data, 'Keyword added.'
 
-#     SCHEDULED NOT WORKING ON PYTHONANYWHERE
 def background_search(input_data, limit, offset, search_id):
 
     global flag_bkg
@@ -61,7 +60,6 @@ def background_search(input_data, limit, offset, search_id):
     print("Background search completed")
 
     return 0
-
 
 @views.route('/', methods=['GET', 'POST'])  
 @views.route('/search', methods=['GET', 'POST']) 
