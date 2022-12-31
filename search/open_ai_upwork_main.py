@@ -33,14 +33,14 @@ except:
 column_list = ['keyword', 'specific_keyword', 'artist', 'track_name', 'release_year', 'album', 'yt_video_id',
                         'model_response', 'popularity', 'duration_ms', 'track_id']
 column_name_transform = {'artist': 'Artist','track_name': 'Track Name','release_year': 'Release Year','album': 'Album'}
-cwd = os.getcwd()
+cwd = os.path.dirname(__file__)
 
 # define auth keys
 openai.api_key = ""
 youtube_api_key = ''
 
 # paths
-output_dir = f'{cwd}/song_search/sd_app/model_outputs'
+output_dir = os.path.join(cwd,'..', 'sd_app', 'model_outputs')
 
 def get_input_keyword_data(input_keyword_csv_filepath):
     input_kw_df = pd.read_csv(input_keyword_csv_filepath, names=['index','search_term', 'keyword'])
@@ -313,7 +313,7 @@ def main_proc(input_data):
     
     print(f"Saving CSV file to : {output_path}")
 
-    if not os.path.exists(output_path): os.mkdir(output_path)
+    if not os.path.exists(output_dir): os.mkdir(output_dir)
     final_output_df.to_csv(output_path, sep=';', index=False)
     return output_fname
 
