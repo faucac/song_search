@@ -197,7 +197,7 @@ def clear(flash_msg=True, what_to_clear=None):
     elif what_to_clear == 'history':
         for search in Search.query.all():
             delete_search(flash_msg=False, idx = search.id)
-            flash('Search history cleared.', category='error')
+        flash('Search history cleared.', category='error')
 
     return jsonify({})
 
