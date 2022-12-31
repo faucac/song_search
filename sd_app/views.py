@@ -32,12 +32,19 @@ def read_data():
     return pd.read_csv(input_path,names=['keyword', 'sp_keyword']).applymap(str)
 
 def add_row(input_data, new_row):
+    def check_kw(kw):
+        flag = False
+        if kw is None or kw == '': flag = True
+        return flag
+
     #check n of columns
     if len(input_data.columns.values) != 2:
         return False, input_data, "An error ocurred. Try again."
     #check duplicates
     if input_data[(input_data.keyword == new_row['keyword']) & (input_data.sp_keyword == new_row['sp_keyword'])].shape[0] != 0:
         return False, input_data, "Keyword combination already exists."
+    elif check_kw(new_row['keyword']) or check_kw(new_row['sp_keyword']):
+        return False, input_data, "Keywords cannot be empty strings."
     else:
         input_data = pd.concat([input_data, pd.DataFrame(new_row, index=[1])], ignore_index=True)
         return True, input_data, 'Keyword added.'
@@ -103,31 +110,32 @@ def search():
                 if offset < 0 or limit_st < -1:
                     flash("Limits must be positive integer numbers. If you don't want to limit or offset the results, uncheck the checkbox", category='error')
                 else:
-                    input_data = read_data()
-                    time_to_complete = 20*limit_st*len(set(input_data['keyword'].values))
-                    
-                    new_search = Search(            #Create search without file path
-                        user = current_user.username,
-                        keywords = input_data.to_json(),
-                        csv_path = "In progress"
-                    )
-                    db.session.add(new_search)
-                    db.session.commit()
-                    search_id = new_search.id
-                    print(search_id)
-                    thread = threading.Thread(target = background_search, kwargs={
-                        'local_app':app,
-                        'local_db': db,
-                        'input_data':input_data,
-                        'limit':limit_st,
-                        'offset':offset,
-                        'search_id':search_id,
-                        'Search': Search
-                    })
-
                     if not flag_bkg.is_set():
+
+                        input_data = read_data()
+                        time_to_complete = 20*limit_st*len(set(input_data['keyword'].values))
+                        
+                        new_search = Search(            #Create search without file path
+                            user = current_user.username,
+                            keywords = input_data.to_json(),
+                            csv_path = "In progress"
+                        )
+                        db.session.add(new_search)
+                        db.session.commit()
+                        search_id = new_search.id
+                        print(search_id)
+                        thread = threading.Thread(target = background_search, kwargs={
+                            'local_app':app,
+                            'local_db': db,
+                            'input_data':input_data,
+                            'limit':limit_st,
+                            'offset':offset,
+                            'search_id':search_id,
+                            'Search': Search
+                        })
+
                         thread.start()
-                        flash(f'Search running in background. Check the search history in about {int(time_to_complete/60)+1} minutes for the download link.', category='success')
+                        flash(f'Search running in background. Check the search history in about {int(time_to_complete/60)+1} minutes for the download link. Do not close this tab.', category='success')
                     else:
                         flash("There's another search running in the background. Try again in a few minutes. Check the search history for completion", category='error')
                     
