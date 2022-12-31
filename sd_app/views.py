@@ -34,7 +34,7 @@ def read_data():
 def add_row(input_data, new_row):
     def check_kw(kw):
         flag = False
-        if kw is None or kw == '': flag = True
+        if kw is None or kw == '' or len(kw) == 0: flag = True
         return flag
 
     #check n of columns
