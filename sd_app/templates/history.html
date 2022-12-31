@@ -22,7 +22,11 @@
         {{search.user}}
     </td>
     <td>
+        {{ if search.csv_path != 'In progress' }}
       <a href="{{ url_for('views.download', filename=search.csv_path) }}">Download CSV file</a>
+        {{ else }}
+        In progress
+        {{ endif }}
     </td>
     <td>
         {{ ', '.join(set(json_load(search.keywords).get('keyword').values())) }}

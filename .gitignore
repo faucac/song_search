@@ -4,6 +4,7 @@ main_local.py
 __pycache__/
 test.py
 #instance/
-model_outputs/
+model_outputs/*
+!model_outputs/placeholder.txt
 #input.csv
-#sd_app/keys.txt
+sd_app/keys.txt

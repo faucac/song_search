@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, send_file
 import json
+import threading
 from flask_login import login_required, current_user
 from jinja2 import Environment, PackageLoader, select_autoescape
 from .models import Search
@@ -13,6 +14,8 @@ from .constants import keys
 from flask import current_app as app
 sys.path.append('/..')
 from search import search as song_search
+
+flag_bkg = threading.Event()
 
 views = Blueprint('views', __name__)
 input_data = pd.DataFrame(columns=['keyword', 'sp_keyword'])
@@ -38,36 +41,34 @@ def add_row(input_data, new_row):
         input_data = pd.concat([input_data, pd.DataFrame(new_row, index=[1])], ignore_index=True)
         return True, input_data, 'Keyword added.'
 
-'''     SCHEDULED NOT WORKING ON PYTHONANYWHERE
-def queue_search(input_data, limit, offset, time_to_complete):
-    queue_path = os.path.join(views.root_path, '..', 'queue.txt')
+#     SCHEDULED NOT WORKING ON PYTHONANYWHERE
+def background_search(input_data, limit, offset, search_id):
 
-    input_data_dict['input_data'] = input_data.to_dict()
-    input_data_dict['limit'] = limit
-    input_data_dict['offset'] = offset
+    global flag_bkg
+    flag_bkg.set()
+    print("Background search running.")
+    input_data = input_data.rename(columns={'keyword': 'search_term', 'sp_keyword':'keyword'})
 
-    input_data_json = json.dumps(input_data_dict)
+    new_search = Search.query.get(search_id)
+    filename = song_search(
+        input_data,
+        limit,
+        offset,
+        keys
+    )
+    new_search.filename = filename
+    db.session.commit()
+    print("Background search completed")
 
-    try:
-        with open(queue_path, 'a') as f:
-            f.write(f'{input_data_json}\n')
-        
-        msg = f'Search running in background. Check the search history in about {int(time_to_complete/60)+1} minutes for the download link.'
-        print('Search added to queue')
-    except Exception as e:
-        msg = 'There was an error while writing into the queue. Try again in a few minutes'
-        print('There was an error while writing into the queue')
-        print(e)
-    
-    return msg
-'''
+    return 0
+
 
 @views.route('/', methods=['GET', 'POST'])  
 @views.route('/search', methods=['GET', 'POST']) 
 @login_required 
 def search():
 
-    global input_data
+    global input_data, flag_bkg
     filename=''
 
     if request.method == 'GET':
@@ -96,35 +97,29 @@ def search():
 
             try:
                 limit_st = int(data['limit-range-kw-txt']) if data.get('check-limit-kw', None) is not None else -1
-                limit_tot=-1
                 offset = int(data['offset-range-txt']) if data.get('check-offset', None) is not None else 0
                 if offset < 0 or limit_st < -1:
                     flash("Limits must be positive integer numbers. If you don't want to limit or offset the results, uncheck the checkbox", category='error')
                 else:
                     input_data = read_data()
-                    #time_to_complete = 20*limit_st*len(set(input_data['keyword'].values))
-                    #if time_to_complete <= 330:     #If it takes less than 5 minutes (timeout limit in PA)
-
-                    filename = song_search(
-                        input_data.rename(columns={'keyword': 'search_term', 'sp_keyword':'keyword'}),
-                        limit_st,
-                        offset,
-                        keys
-                    )
-
-                    new_search = Search(
+                    time_to_complete = 20*limit_st*len(set(input_data['keyword'].values))
+                    
+                    new_search = Search(            #Create search without file path
                         user = current_user.username,
                         keywords = input_data.to_json(),
-                        csv_path = filename
+                        csv_path = "In progress"
                     )
                     db.session.add(new_search)
                     db.session.commit()
-                    flash('Search completed.', category='download')
-                    '''
-                    else:           #If the task will take longer, put search on queue
-                        msg = queue_search(input_data.rename(columns={'keyword': 'search_term', 'sp_keyword':'keyword'}), limit_st, offset, time_to_complete)
-                        flash(msg, category='success')
-                    '''
+
+                    thread = threading.Thread(target = background_search, args=(input_data, limit_st, offset, new_search.id))
+
+                    if not flag.is_set():
+                        background_search(input_data, limit_st, offset, time_to_complete)
+                        flash(f'Search running in background. Check the search history in about {int(time_to_complete/60)+1} minutes for the download link.', category='success')
+                    else:
+                        flash("There's another search running in the background. Try again in a few minutes. Check the search history for completion", category='error')
+                    
             except ValueError:
                 flash("An error happened. Try again.", category='error')
 
