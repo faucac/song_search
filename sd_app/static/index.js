@@ -36,7 +36,7 @@ function search_artist() {
         $("#artist-list").append(
           '<li><button class="btn btn-secondary" style="margin:5px" onClick="search_by_artist(\'' +
             data.name.replace("'", "") +
-            "," +
+            "','" +
             data.id +
             "')\"> " +
             data.name +
