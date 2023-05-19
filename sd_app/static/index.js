@@ -34,7 +34,7 @@ function search_artist() {
     .then((res) => {
       res.forEach((data) => {
         $("#artist-list").append(
-          '<li><button class="btn btn-secondary" onClick="search_by_artist(\'' +
+          '<li><button class="btn btn-secondary" style="margin:5px" onClick="search_by_artist(\'' +
             data.name.replace("'", "") +
             "')\"> " +
             data.name +
