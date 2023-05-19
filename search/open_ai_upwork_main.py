@@ -92,12 +92,7 @@ def search_spotify_tracks(keyword, target="track", by="track", keyword_id=None):
     print("Searching for " + target + " by " + by)
 
     if target == "track":
-        if by=="artist":
-            total_results = sp.search(q=f'{by}:{keyword}', type=target, limit=100, offset=0)['tracks']['total']
-            total_results = [track for track in total_results if keyword_id in [artist['id'] for artist in track['artists']]]
-            total_results = len(total_results)
-        else:
-            total_results = sp.search(q=f'{by}:{keyword}', type=target, limit=1, offset=0)['tracks']['total']
+        total_results = sp.search(q=f'{by}:{keyword}', type=target, limit=1, offset=0)['tracks']['total']
 
         if total_results == 0:
             # Avoid processing if there are no results
