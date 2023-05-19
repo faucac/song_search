@@ -1,0 +1,89 @@
+{% extends "base.html" %} {% block title %}Song search{% endblock %}
+{% block content %}
+
+  <h1 align="center" style="margin-bottom:1em">Search songs</h1>
+
+<div class="container-fluid">
+      
+  <div class="row">
+    <div class="col-md-6">
+            <div class="form-group">
+              <input
+                autofocus
+                type="text"
+                class="form-control"
+                id="artist"
+                placeholder="Artist"
+              />
+            </div>
+    </div>
+    <div class="col-md-2">
+      
+      <button class="btn btn-primary" data-toggle="modal" onClick="search_artist()">
+        Search
+      </button>
+    </div>
+    <div class="col-md-4">
+
+      <form method="POST">
+      <div class="form-group">
+        <div class="row">
+
+          <div class="col-md-8">
+            <label for="limit-range-kw" class="form-label">Limit by keyword</label>
+            <br>
+            <input type="number" value="20" id="limit-range-kw-txt" name="limit-range-kw-txt" style="width:3em">  &nbsp
+            <input type="range" class="form-range" id="limit-range-kw" min="1" max="50" step="1" value="20">
+            
+          </div>
+          <div class="col-md-4" align="left">
+            <input checked class="form-check-input" type="checkbox" value="limited" id="check-limit-kw" name="check-limit-kw">
+          </div>
+
+        </div>   
+        
+        
+        <div class="row" style="margin-top:1em">
+
+          <div class="col-md-8">
+            <label for="offset-range" class="form-label">Result offset</label>
+            <br>
+            <input disabled type="number" value="0" id="offset-range-txt" name="offset-range-txt" style="width:3em">  &nbsp
+            <input disabled type="range" class="form-range" id="offset-range" min="0" max="50" step="1" value="0">
+          </div>
+          <div class="col-md-4" align="left">
+            <input class="form-check-input" type="checkbox" value="limited" id="check-offset" name="check-offset">
+          </div>
+          <br>
+          <p>Looking for records: <span id="lower-limit">1</span> through <span id="upper-limit">20</span></p>
+
+        </div>
+          
+      </div>
+    </form>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal fade" id="modal_artist_select" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+      <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Select an artist</h5>
+          
+      </div>
+      <div class="modal-body">
+        <ul id="artist-list">
+
+        </ul>  
+        
+      </div>
+      </div>
+      
+  </div>
+  </div>
+
+{% endblock %}
+    
