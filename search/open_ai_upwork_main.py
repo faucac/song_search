@@ -110,7 +110,7 @@ def search_spotify_tracks(keyword, target="track", by="track", keyword_id=None):
                 track_search_results_clean = [track for track in track_search_results if keyword in clean_names_for_list(
                     track.get('name', None), keyword)]
             else:
-                track_search_results_clean=[track for track in track_search_results_clean if keyword_id in [artist['id'] for artist in track['artists']]]
+                track_search_results_clean=[track for track in track_search_results if keyword_id in [artist['id'] for artist in track['artists']]]
             
             for i, track in enumerate(track_search_results_clean):
 
