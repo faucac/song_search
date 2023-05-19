@@ -212,7 +212,7 @@ def search_by_artist():
                     thread = threading.Thread(target=background_search, kwargs={
                         'local_app': app,
                         'local_db': db,
-                        'input_data': data['artist-name'],
+                        'input_data': {"name":data['artist-name'], "id":data['artist-id']},
                         'limit': limit_st,
                         'offset': offset,
                         'search_id': search_id,

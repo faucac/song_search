@@ -36,6 +36,8 @@ function search_artist() {
         $("#artist-list").append(
           '<li><button class="btn btn-secondary" style="margin:5px" onClick="search_by_artist(\'' +
             data.name.replace("'", "") +
+            "," +
+            data.id +
             "')\"> " +
             data.name +
             "</li>"
@@ -46,10 +48,11 @@ function search_artist() {
       $("#modal_artist_select").modal("show");
     });
 }
-function search_by_artist(artist_name) {
+function search_by_artist(artist_name, artist_id) {
   console.log("hasta aca bien: " + artist_name);
   let body = {
     "artist-name": artist_name,
+    "artist-id": artist_id,
     "limit-range-kw-txt": $("#limit-range-kw-txt").val(),
     "offset-range-txt": $("#offset-range-txt").val(),
     "check-limit-kw": $("#check-limit-kw").is(":checked") ? 1 : null,

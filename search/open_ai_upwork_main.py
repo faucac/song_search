@@ -57,7 +57,7 @@ def get_input_keyword_data(input_keyword_csv_filepath):
     return input_kw_df
 
 
-def search_spotify_tracks(keyword, target="track", by="track"):
+def search_spotify_tracks(keyword, target="track", by="track", keyword_id=None):
     search_columns = ['artist', 'track_name', 'release_year',
                       'album', 'popularity', 'duration_ms', 'track_id', 'spotify_url']
 
@@ -92,8 +92,12 @@ def search_spotify_tracks(keyword, target="track", by="track"):
     print("Searching for " + target + " by " + by)
 
     if target == "track":
-        total_results = sp.search(q=f'{by}:{keyword}', type=target, limit=1, offset=0)[
-            'tracks']['total']
+        if by=="artist":
+            total_results = sp.search(q=f'{by}:{keyword}', type=target, limit=100, offset=0)['tracks']['total']
+            total_results = [track for track in total_results if keyword_id in [artist['id'] for artist in track['artists']]]
+            total_results = len(total_results)
+        else:
+            total_results = sp.search(q=f'{by}:{keyword}', type=target, limit=1, offset=0)['tracks']['total']
 
         if total_results == 0:
             # Avoid processing if there are no results
@@ -104,8 +108,6 @@ def search_spotify_tracks(keyword, target="track", by="track"):
             if offset >= 1000:  # Maximum offset spotipy can handle
                 break
                 
-            
-
             track_search_results = sp.search(
                 q=f'{by}:{keyword}', type=target, limit=50, offset=offset, market=market)['tracks']['items']
             
@@ -113,7 +115,7 @@ def search_spotify_tracks(keyword, target="track", by="track"):
                 track_search_results_clean = [track for track in track_search_results if keyword in clean_names_for_list(
                     track.get('name', None), keyword)]
             else:
-                track_search_results_clean=track_search_results
+                track_search_results_clean=[track for track in track_search_results_clean if keyword_id in [artist['id'] for artist in track['artists']]]
             
             for i, track in enumerate(track_search_results_clean):
 
@@ -252,7 +254,7 @@ def get_search_results(keyword_df, search_term, stopper):
 
     return out_df
 
-def get_search_results_by_artist(artist, stopper):
+def get_search_results_by_artist(artist, stopper, artist_id):
 
     if (stopper.is_set()):
         print("Stopped search")
@@ -260,7 +262,7 @@ def get_search_results_by_artist(artist, stopper):
     print(
         f"|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")
     print(f"Searching for top songs by {artist}")
-    df_w_spot_df = search_spotify_tracks(artist, target="track", by="artist")
+    df_w_spot_df = search_spotify_tracks(artist, target="track", by="artist", keyword_id=artist_id)
 
     df_w_spot_df.sort_values('popularity', ascending=False, inplace=True)
     print("Limiting search results to " + str(limit_per_search_term))
@@ -437,7 +439,7 @@ def main_proc(input_data, stopper, keys, by_artist):
     output_dfs = []
 
     if by_artist:
-        output_df = get_search_results_by_artist(input_data, stopper)  
+        output_df = get_search_results_by_artist(input_data['name'], stopper, input_data['id'])  
         print("output search: ")
         print(output_df)  
     
@@ -464,11 +466,11 @@ def main_proc(input_data, stopper, keys, by_artist):
     if(by_artist):
         # Loop again for consolidating csv file
         json_string, n_songs = get_json_string(clean_sorted_data)
-        slug = 'top-songs-from-' + input_data.replace(" ", "-").lower()
+        slug = 'top-songs-from-' + input_data['name'].replace(" ", "-").lower()
 
         output_data = {'id': str(uuid4()),
-                    'track_name_keyword': input_data,
-                    'H1': f'{n_songs} Top songs from {input_data.capitalize()}',
+                    'track_name_keyword': input_data['name'],
+                    'H1': f'{n_songs} Top songs from {input_data["name"].capitalize()}',
                     'slug': slug,
                     'intro': '',
                     'number_of_songs_listed': n_songs,
