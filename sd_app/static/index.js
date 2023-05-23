@@ -57,6 +57,8 @@ function search_by_artist(artist_name, artist_id) {
     "offset-range-txt": $("#offset-range-txt").val(),
     "check-limit-kw": $("#check-limit-kw").is(":checked") ? 1 : null,
     "check-offset": $("#check-offset").is(":checked") ? 1 : null,
+    "wp-user": $("#wp-user").val(),
+    "wp-password": $("#wp-password").val(),
   };
   console.log(body);
 

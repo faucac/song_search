@@ -81,6 +81,9 @@ def background_search(local_app, local_db, input_data, limit, offset, search_id,
         if csv_filename == False or html_filename == False:
             flag_bkg.clear()
             return
+        
+        keys.pop('wp_user')
+        keys.pop('wp_password')
         new_search = Search.query.get(search_id)
         new_search.csv_path = csv_filename
         new_search.html_path = html_filename
@@ -197,6 +200,8 @@ def search_by_artist():
                     stopper.clear()
 
                     time_to_complete = 20*limit_st
+                    keys['wp_user'] = data.get('wp-user', None)
+                    keys['wp_password'] = data.get('wp-password', None)
 
                     new_search = Search(  # Create search without file path
                         user=current_user.username,
