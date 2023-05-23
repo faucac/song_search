@@ -20,9 +20,9 @@ def generate_html(json_string):
             )
 
         #   Video
-        with a.figure(klass="wp-block-embed is-type-video is-provider-youtube wp-block-embed-youtube wp-embed-aspect-16-9 wp-has-aspect-ratio"):
-            with a.div(klass="wp-block-embed__wrapper"):
-                a.div(
+        '''with a.figure(klass="wp-block-embed is-type-video is-provider-youtube wp-block-embed-youtube wp-embed-aspect-16-9 wp-has-aspect-ratio"):
+            with a.div(klass="wp-block-embed__wrapper"):'''
+        a.div(
                     f'data-id="{song_data["yt_video_id"]}" data-src="https://www.youtube.com/embed/{song_data["yt_video_id"]}" data-query="feature=oembed"', klass="rll-youtube-player")
 
         #   Description
