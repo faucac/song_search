@@ -69,7 +69,8 @@ def background_search(local_app, local_db, input_data, limit, offset, search_id,
         if not by_artist:
             input_data = input_data.rename(
             columns={'keyword': 'search_term', 'sp_keyword': 'keyword'})
-
+        print(keys)
+        '''
         csv_filename, html_filename = song_search(
             input_data,
             limit,
@@ -87,7 +88,7 @@ def background_search(local_app, local_db, input_data, limit, offset, search_id,
         local_db.session.commit()
         print("Background search completed")
         local_db.session.close()
-        flag_bkg.clear()
+        flag_bkg.clear()'''
 
 
 @views.route('/', methods=['GET', 'POST'])
@@ -136,9 +137,9 @@ def search():
                         time_to_complete = 20*limit_st * \
                             len(set(input_data['keyword'].values))
 
-                        print(current_user.username)
-                        print(type(current_user.id))
-                        print(input_data.to_json())
+                        keys['wp_user'] = data.get('wp-user', None)
+                        keys['wp_password'] = data.get('wp-password', None)
+
 
                         new_search = Search(  # Create search without file path
                             user=current_user.username,
