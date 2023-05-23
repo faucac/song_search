@@ -15,7 +15,7 @@ def create_wp_draft(title, html, keys):
         'title': title,
         'status': 'draft',
         'content': html,
-        'categories': 5,  # category ID
+        'categories': 1,  # category ID
         'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
 
