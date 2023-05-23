@@ -20,8 +20,12 @@ def create_wp_draft(title, html, keys):
     }
 
     print("Creating wordpress draft...")
-    print(post)
+    print("Requesting")
 
-    requests.post(url, headers=header, json=post)
+    response = requests.post(url, headers=header, json=post)
+    try:
+        print(str(response))
+    except:
+        print(response)
 
     return
