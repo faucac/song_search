@@ -23,9 +23,7 @@ def create_wp_draft(title, html, keys):
     print("Requesting")
 
     response = requests.post(url, headers=header, json=post)
-    try:
-        print(str(response))
-    except:
-        print(response)
-
+    
+    response.json()
+    print(json.dumps(response))
     return
