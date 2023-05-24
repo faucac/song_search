@@ -160,6 +160,8 @@ def get_youtube_search_results(track_title):
         video_id = search_results['items'][0]['id']['videoId']
     except HttpError as error:
         # check if the error is due to exceeding the daily quota
+        print(error.resp)
+        print(error.resp.status)
         if error.resp.status in [403, 404]:
             # handle the error and switch to scraping solution
             print(
@@ -502,7 +504,7 @@ def main_proc(input_data, stopper, keys, by_artist):
             html = generate_html(json_string)
 
             wp_title = str(n_songs) + ' ' + slug.replace('-', ' ').title()
-            create_wp_draft(wp_title, html, keys)
+            create_wp_draft(wp_title, html, slug, keys)
 
             output_dfs.append(output_df)
 
