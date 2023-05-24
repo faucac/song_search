@@ -22,19 +22,18 @@ def create_wp_draft(title, html, slug, keys):
         'status': 'draft',
         'slug':slug,
         'content': html,
-        'categories': 1,  # category ID
+        #'categories': 1,  # category ID
         'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
 
     print("Creating wordpress draft...")
     print("Requesting")
-
-    response = requests.post(url, json=post, auth=auth, headers=headers)
     
-    print(response.json())
+    response = requests.post(url, json=post, headers=header_auth)
+    
 
     if response.status_code==401 or response.status_code=="401":
-        response = requests.post(url, json=post, headers=header_auth)
+        response = requests.post(url, json=post, auth=auth, headers=headers)
 
         print(response.json())
 
