@@ -476,7 +476,7 @@ def main_proc(input_data, stopper, keys, by_artist):
         html = generate_html(json_string)
 
         wp_title = str(n_songs) + ' ' + slug.replace('-', ' ').title()
-        create_wp_draft(wp_title, html, keys)
+        create_wp_draft(wp_title, html, slug, keys)
 
         output_dfs.append(output_df)
 
