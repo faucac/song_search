@@ -9,8 +9,8 @@ def create_wp_draft(title, html, keys):
     user = keys['wp_user']
     password = keys['wp_password']
     credentials = str(user) + ':' + str(password)
-    token = b64encode(credentials.encode())
-    header = {'Authorization': 'Basic ' + token.decode('utf-8')}
+    token = b64encode(credentials.encode('utf-8')).decode('ascii')
+    header = {'Authorization': 'Basic ' + token}
     post = {
         'title': title,
         'status': 'draft',
@@ -22,10 +22,14 @@ def create_wp_draft(title, html, keys):
     print("Creating wordpress draft...")
     print("Requesting")
 
-    response = requests.post(url, headers=header, json=post)
+    response = requests.post(url, json=post, auth=(user, password))#, headers=header)
     
-    try:
-      print(json.dumps(response.json()))
-    except:
-      print(response.json())
+    print(response.json())
+
+    if response.status_code==401 or response.status_code=="401":
+        response = requests.post(url, json=post, headers=header)
+
+        print(response.json())
+
+    
     return
