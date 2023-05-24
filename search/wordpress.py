@@ -2,6 +2,7 @@ import requests
 import json
 from base64 import b64encode
 from datetime import datetime
+from requests.auth import HTTPBasicAuth
 
 
 def create_wp_draft(title, html, slug, keys):
@@ -10,7 +11,12 @@ def create_wp_draft(title, html, slug, keys):
     password = keys['wp_password']
     credentials = str(user) + ':' + str(password)
     token = b64encode(credentials.encode('utf-8')).decode('ascii')
-    header = {'Authorization': 'Basic ' + token}
+    header_auth = {'Authorization': 'Basic ' + token}
+    headers = {
+    "Accept": "application/json",
+    "Content-Type": "application/json"
+    }
+    auth=HTTPBasicAuth(user, password)
     post = {
         'title': title,
         'status': 'draft',
@@ -23,12 +29,12 @@ def create_wp_draft(title, html, slug, keys):
     print("Creating wordpress draft...")
     print("Requesting")
 
-    response = requests.post(url, json=post, auth=(user, password))#, headers=header)
+    response = requests.post(url, json=post, auth=auth, headers=headers)
     
     print(response.json())
 
     if response.status_code==401 or response.status_code=="401":
-        response = requests.post(url, json=post, headers=header)
+        response = requests.post(url, json=post, headers=header_auth)
 
         print(response.json())
 
