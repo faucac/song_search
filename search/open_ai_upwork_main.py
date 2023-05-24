@@ -160,15 +160,14 @@ def get_youtube_search_results(track_title):
         video_id = search_results['items'][0]['id']['videoId']
     except HttpError as error:
         # check if the error is due to exceeding the daily quota
-        print(error.resp)
-        print(error.resp.status)
         if error.resp.status in [403, 404]:
             # handle the error and switch to scraping solution
             print(
                 'Daily quota for YouTube Data API exceeded... Switching to YouTube scraping solution...')
             video_id = scrape_youtube_search_results(track_title)
         else:
-            video_id = ''
+            print('There was an error using the YouTube Data API... Switching to YouTube scraping solution...')
+            video_id = scrape_youtube_search_results(track_title)
     except Exception as e:
         print('There was an error using the YouTube Data API... Switching to YouTube scraping solution...')
         video_id = scrape_youtube_search_results(track_title)

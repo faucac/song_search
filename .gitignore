@@ -1,0 +1,5 @@
+instance/*
+search/__pycache__/*
+sd_app/__pycache__/*
+sd_app/model_outputs/*
+.cache
