@@ -1,7 +1,10 @@
 import json
 from airium import Airium
+import os
 
-with open('youtube_api_script.txt', 'r') as f:
+cwd = os.path.dirname(__file__)
+
+with open(os.path.join(cwd,'youtube_api_script.txt'), 'r') as f:
     script_string = f.read()
 
 def generate_html(json_string):
