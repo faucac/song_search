@@ -1,5 +1,5 @@
 from search import search as song_search
-from flask import Flask, Blueprint, render_template, request, flash, jsonify, redirect, url_for, send_file
+from flask import Flask, Blueprint, render_template, request, flash, jsonify, redirect, url_for, send_file, render_template_string
 import json
 import threading
 from flask_login import login_required, current_user
@@ -346,6 +346,9 @@ def download(filename):
 def seeHTML(filename):
     # Appending app path to upload folder path within app root folder
     path = os.path.join(views.root_path, 'model_outputs', filename)
+
+    with open(path, 'r') as f:
+        html = f.read()
     # Returning file from appended path
     send_file(path, as_attachment=True)
-    return render_template(path)
+    return render_template_string(html)
