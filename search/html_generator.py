@@ -1,6 +1,8 @@
 import json
 from airium import Airium
 
+with open('youtube_api_script.txt', 'r') as f:
+    script_string = f.read()
 
 def generate_html(json_string):
 
@@ -31,6 +33,8 @@ def generate_html(json_string):
 
         #   Description
         a.p(_t=song_data["model_response"])
+    
+    a(script_string)
 
     # Casting the file to a string to extract the value
     html = str(a)
