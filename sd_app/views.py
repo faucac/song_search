@@ -340,3 +340,12 @@ def download(filename):
     path = os.path.join(views.root_path, 'model_outputs', filename)
     # Returning file from appended path
     return send_file(path, as_attachment=True)
+
+@views.route('/html/<path:filename>', methods=['GET', 'POST'])
+@login_required
+def seeHTML(filename):
+    # Appending app path to upload folder path within app root folder
+    path = os.path.join(views.root_path, 'model_outputs', filename)
+    # Returning file from appended path
+    send_file(path, as_attachment=True)
+    return render_template(path)
