@@ -31,8 +31,8 @@ def generate_html(json_string):
             with a.figure(klass="wp-block-embed is-type-video is-provider-youtube wp-block-embed-youtube wp-embed-aspect-16-9 wp-has-aspect-ratio"):
                 with a.div(klass="wp-block-embed__wrapper"):
                     with a.div(f'data-id="{song_data["yt_video_id"]}" data-src="https://www.youtube.com/embed/{song_data["yt_video_id"]}" data-query="feature=oembed"', klass="rll-youtube-player"):
-                        #with a.noscript():
-                        a.iframe("allowfullscreen", title=title, width="840", height="473", src=f"https://www.youtube.com/embed/{song_data['yt_video_id']}?feature=oembed", frameborder="0", allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture")
+                        with a.noscript():
+                            a.iframe("allowfullscreen", title=title, width="840", height="473", src=f"https://www.youtube.com/embed/{song_data['yt_video_id']}?feature=oembed", frameborder="0", allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture")
 
         #   Description
         a.p(_t=song_data["model_response"])
