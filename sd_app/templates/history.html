@@ -30,7 +30,7 @@
     </td>
     <td>
         {% if search.html_path != 'In progress' %}
-      <a href="{{ url_for('views.download', filename=search.html_path) }}">Download HTML</a>
+      <a href="{{ url_for('views.seeHTML', filename=search.html_path) }}">Download HTML</a>
         {% else %}
         In progress
         {% endif %}
