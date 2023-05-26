@@ -37,7 +37,7 @@ def generate_html(json_string):
         #   Song Data
         with a.div(klass="songfacts"):
             for item in ["Artist", "Track Name", "Album", "Release Year"]:
-                a.strong(item + ": ")
+                a.strong(_t=item + ": ")
                 a(song_data[item])
                 a.br()
 
