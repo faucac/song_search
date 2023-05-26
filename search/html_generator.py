@@ -29,6 +29,24 @@ def generate_html(json_string):
                         with a.noscript():
                             a.iframe("allowfullscreen", title=title, width="840", height="473", src=f"https://www.youtube.com/embed/{song_data['yt_video_id']}?feature=oembed", frameborder="0", allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture")
 
+        #   Song Data
+        with a.div(klass="songfacts"):
+            for item in ["Artist", "Track Name", "Album", "Release Year"]:
+                a.strong(item + ": ")
+                a(song_data[item])
+                a.br()
+
+            #   Spotify
+            with a.a(klass="spotify", href=f"https://open.spotify.com/track/{track_id}", target="_blank", rel="noopener" ):
+                a.img('data-lazy-src="https://songpier.com/wp-content/uploads/2022/05/listen-spotify-button-edited-e1671691367203.png"',
+                width="292", height="73", klass="gb-image gb-image-1d75b3e9", 
+                src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20292%2073'%3E%3C/svg%3E",
+                alt="spotify", title="listen-spotify-button")
+                with a.noscript():
+                    a.img(width="292", height="73", klass="gb-image gb-image-1d75b3e9", alt="spotify", title="listen-spotify-button",
+                    src="https://songpier.com/wp-content/uploads/2022/05/listen-spotify-button-edited-e1671691367203.png")
+            a.br()
+
         #   Description
         a.p(_t=song_data["model_response"])
 
@@ -38,8 +56,3 @@ def generate_html(json_string):
 
     return html
 
-
-'''
-<noscript>
- <iframe title="Prince - Purple Rain (Official Video)" width="840" height="473" src="https://www.youtube.com/embed/TvnYmWpD_T8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
- </noscript>''' 
