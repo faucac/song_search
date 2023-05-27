@@ -149,9 +149,6 @@ def search():
                         time_to_complete = 20*limit_st * \
                             len(set(input_data['keyword'].values))
 
-                        keys['wp_user'] = data.get('wp-user', None)
-                        keys['wp_password'] = data.get('wp-password', None)
-
 
                         new_search = Search(  # Create search without file path
                             user=current_user.username,
