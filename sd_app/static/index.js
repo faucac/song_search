@@ -34,13 +34,13 @@ function search_artist() {
     .then((res) => {
       res.forEach((data) => {
         $("#artist-list").append(
-          '<li><button class="btn btn-secondary" style="margin:5px" onClick="search_by_artist(\'' +
+          '<button class="btn btn-outline-secondary" style="margin:5px" onClick="search_by_artist(\'' +
             data.name.replace("'", "") +
             "','" +
             data.id +
             "')\"> " +
             data.name +
-            "</li>"
+            "</button>"
         );
       });
 
@@ -57,8 +57,7 @@ function search_by_artist(artist_name, artist_id) {
     "offset-range-txt": $("#offset-range-txt").val(),
     "check-limit-kw": $("#check-limit-kw").is(":checked") ? 1 : null,
     "check-offset": $("#check-offset").is(":checked") ? 1 : null,
-    "wp-user": $("#wp-user").val(),
-    "wp-password": $("#wp-password").val(),
+    wordpress: $("#wordpress").is(":checked") ? 1 : false,
   };
   console.log(body);
 

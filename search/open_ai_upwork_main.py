@@ -347,7 +347,7 @@ def generate_html_file(html):
     return output_html_name
 
 
-def main_proc(input_data, stopper, keys, by_artist):
+def main_proc(input_data, stopper, keys, wordpress,by_artist):
 
     def get_openai_yt_data(df):
         # Get youtube and openai data
@@ -477,7 +477,7 @@ def main_proc(input_data, stopper, keys, by_artist):
         html = generate_html(json_string)
 
         wp_title = str(n_songs) + ' ' + slug.replace('-', ' ').title()
-        create_wp_draft(wp_title, html, slug, keys)
+        if wordpress: create_wp_draft(wp_title, html, slug, keys)
 
         output_dfs.append(output_df)
 
@@ -503,7 +503,7 @@ def main_proc(input_data, stopper, keys, by_artist):
             html = generate_html(json_string)
 
             wp_title = str(n_songs) + ' ' + slug.replace('-', ' ').title()
-            create_wp_draft(wp_title, html, slug, keys)
+            if wordpress: create_wp_draft(wp_title, html, slug, keys)
 
             output_dfs.append(output_df)
 
@@ -528,7 +528,7 @@ if __name__ == '__main__':
 '''
 
 
-def search(input_data, limit_st, offset_res, keys, stopper, by_artist):
+def search(input_data, limit_st, offset_res, keys, stopper, wordpress,by_artist):
     global limit_per_search_term, limit_total, youtube_api_key, offset
 
     openai.api_key = keys['openai_key']
@@ -537,7 +537,7 @@ def search(input_data, limit_st, offset_res, keys, stopper, by_artist):
     offset = offset_res
     limit_total = -1
     limit_per_search_term = limit_st
-    return main_proc(input_data, stopper, keys, by_artist)
+    return main_proc(input_data, stopper, keys, wordpress,by_artist)
 
 
 def search_artists(artist_name):

@@ -58,7 +58,7 @@ def add_row(input_data, new_row):
         return True, input_data, 'Keyword added.'
 
 
-def background_search(local_app, local_db, input_data, limit, offset, search_id, Search, by_artist=False):
+def background_search(local_app, local_db, input_data, limit, offset, search_id, Search, wordpress,by_artist=False):
 
     with local_app.app_context():
         global flag_bkg, stopper
@@ -70,27 +70,37 @@ def background_search(local_app, local_db, input_data, limit, offset, search_id,
             input_data = input_data.rename(
             columns={'keyword': 'search_term', 'sp_keyword': 'keyword'})
         
-        csv_filename, html_filename = song_search(
-            input_data,
-            limit,
-            offset,
-            keys,
-            stopper,
-            by_artist
-        )
-        if csv_filename == False or html_filename == False:
-            flag_bkg.clear()
-            return
-        
-        keys.pop('wp_user')
-        keys.pop('wp_password')
         new_search = Search.query.get(search_id)
-        new_search.csv_path = csv_filename
-        new_search.html_path = html_filename
-        local_db.session.commit()
-        print("Background search completed")
-        local_db.session.close()
-        flag_bkg.clear()
+        
+        try:
+            csv_filename, html_filename = song_search(
+                input_data,
+                limit,
+                offset,
+                keys,
+                stopper,
+                wordpress,
+                by_artist
+            )
+            if csv_filename == False or html_filename == False:
+                flag_bkg.clear()
+                return
+            
+            new_search.csv_path = csv_filename
+            new_search.html_path = html_filename
+            local_db.session.commit()
+            print("Background search completed")
+            local_db.session.close()
+            flag_bkg.clear()
+        except:
+            new_search.csv_path = "Failed"
+            new_search.html_path = "Failed"
+            
+            local_db.session.commit()
+            print("Background search failed")
+            local_db.session.close()
+            flag_bkg.clear()
+
 
 
 @views.route('/', methods=['GET', 'POST'])
@@ -161,7 +171,8 @@ def search():
                             'limit': limit_st,
                             'offset': offset,
                             'search_id': search_id,
-                            'Search': Search
+                            'Search': Search,
+                            'wordpress':data.get('create-wordpress', False) 
                         })
 
                         thread.start()
@@ -186,7 +197,6 @@ def search_by_artist():
 
     if request.method == 'POST':
         data = json.loads(request.data)
-        print(data)
 
         try:
             limit_st = int(
@@ -200,8 +210,6 @@ def search_by_artist():
                     stopper.clear()
 
                     time_to_complete = 20*limit_st
-                    keys['wp_user'] = data.get('wp-user', None)
-                    keys['wp_password'] = data.get('wp-password', None)
 
                     new_search = Search(  # Create search without file path
                         user=current_user.username,
@@ -222,6 +230,7 @@ def search_by_artist():
                         'offset': offset,
                         'search_id': search_id,
                         'Search': Search,
+                        'wordpress':data.get('create-wordpress', False),
                         'by_artist':True
                     })
 
@@ -285,7 +294,7 @@ def delete_search(flash_msg=True, idx=None):
             os.remove(filepath)
     else:
         stopper.set()
-        flash("The search was stopped", category='error')
+        if flash_msg: flash("The search was stopped", category='error')
         flash_msg = False
 
     db.session.delete(search)

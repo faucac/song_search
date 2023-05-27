@@ -18,7 +18,7 @@ def generate_html(json_string):
     # Generate HTML file
     for song, song_data in data.items():
         title = f"{song_data['Track Name']} &#8211;{song_data['Artist'].title()}"    
-        song_data["model_response"] = "Nice song!!"
+        #   song_data["model_response"] = "Nice song!!"
 
         #   Title
         with a.h2(klass="wp-block-heading"):
