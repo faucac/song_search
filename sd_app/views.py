@@ -294,6 +294,7 @@ def delete_search(flash_msg=True, idx=None):
             os.remove(filepath)
     else:
         stopper.set()
+        flag_bkg.clear()
         if flash_msg: flash("The search was stopped", category='error')
         flash_msg = False
 
