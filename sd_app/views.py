@@ -172,7 +172,7 @@ def search():
                             'offset': offset,
                             'search_id': search_id,
                             'Search': Search,
-                            'wordpress':data.get('create-wordpress', False) 
+                            'wordpress':data.get('wordpress', False) 
                         })
 
                         thread.start()
@@ -230,7 +230,7 @@ def search_by_artist():
                         'offset': offset,
                         'search_id': search_id,
                         'Search': Search,
-                        'wordpress':data.get('create-wordpress', False),
+                        'wordpress':data.get('wordpress', False),
                         'by_artist':True
                     })
 
