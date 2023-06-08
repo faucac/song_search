@@ -59,7 +59,7 @@ button, input, label{
 }
 
 .basic-padding{
-    padding: 0.75em
+    padding: 0.55em
 }
 
 .horizontal-container{
@@ -84,6 +84,23 @@ button, input, label{
 .border{
     border-style: solid;
     border-width: 5px;
+}
+
+.truncate{
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    max-width: 200px;
+    overflow: hidden;
+    max-height:56px;
+    text-overflow:'';
+    display: inline-block;
+}
+
+.expand-btn {
+    border-radius:1em;
+    border-width: 0;
+    background-color:darkgray;
 }
 
 .btn-primary{

@@ -14,14 +14,14 @@ import sys
 import os
 from . import db, app
 # from .func.wordpress import create_draft
-from .constants import keys
+from .constants import keys, default_prompt, default_intro_prompt, default_intro_prompt_artist
 sys.path.append('/..')
 
 flag_bkg = threading.Event()
 stopper = threading.Event()
 
 views = Blueprint('views', __name__)
-input_data = pd.DataFrame(columns=['keyword', 'sp_keyword'])
+input_data = {'keywords':pd.DataFrame(columns=['keyword', 'sp_keyword']), 'prompt':default_prompt}
 input_path = os.path.join(os.path.dirname(__file__), '..', 'input.csv')
 
 
@@ -67,13 +67,13 @@ def background_search(local_app, local_db, input_data, limit, offset, search_id,
         print("Background search running.")
         print(f"Limiting results to {limit}. Offset: {offset}")
         if not by_artist:
-            input_data = input_data.rename(
+            input_data['keywords'] = input_data['keywords'].rename(
             columns={'keyword': 'search_term', 'sp_keyword': 'keyword'})
         
         new_search = Search.query.get(search_id)
         
         try:
-            csv_filename, html_filename = song_search(
+            resume = song_search(
                 input_data,
                 limit,
                 offset,
@@ -82,24 +82,25 @@ def background_search(local_app, local_db, input_data, limit, offset, search_id,
                 wordpress,
                 by_artist
             )
-            if csv_filename == False or html_filename == False:
+            if not resume:
                 flag_bkg.clear()
+                stopper.clear()
                 return
             
-            new_search.csv_path = csv_filename
-            new_search.html_path = html_filename
+            new_search.status = "Completed"
             local_db.session.commit()
             print("Background search completed")
             local_db.session.close()
             flag_bkg.clear()
-        except:
-            new_search.csv_path = "Failed"
-            new_search.html_path = "Failed"
+        except Exception as e:
+            new_search.status = "Failed"
             
             local_db.session.commit()
             print("Background search failed")
             local_db.session.close()
             flag_bkg.clear()
+
+            raise e
 
 
 
@@ -109,11 +110,25 @@ def background_search(local_app, local_db, input_data, limit, offset, search_id,
 def search():
 
     global input_data, flag_bkg, app, stopper
-    filename = ''
-
+    prompt = current_user.default_prompt
+    intro_prompt = current_user.default_intro_prompt
+    search_id = request.args.get('search_id', None)
+    
     if request.method == 'GET':
 
-        input_data = read_data()
+        if search_id is not None:
+            flash('Input data restored.', category='success')
+            search = Search.query.get(search_id)
+
+            clear(flash_msg=False, what_to_clear='input')
+            input_data['keywords'] = pd.DataFrame(json.loads(search.keywords))
+            prompt = search.prompt
+            intro_prompt = search.intro_prompt
+
+            save_input_data(input_data['keywords'])
+
+        else:
+            input_data['keywords'] = read_data()
 
     if request.method == 'POST':
         data = dict(request.form)
@@ -122,17 +137,27 @@ def search():
             data.pop('option', None)
             new_row = {x: y.lower() for x, y in data.items()}
 
-            flag, input_data, msg = add_row(input_data, new_row)
+            flag, input_data['keywords'], msg = add_row(input_data['keywords'], new_row)
 
             if flag:
                 flash(msg, category='success')
             else:
                 flash(msg, category='error')
 
-            save_input_data(input_data)
+            save_input_data(input_data['keywords'])
 
         elif data['option'] == 'search':
             data.pop('option', None)
+
+            if "`" in data.get('prompt', "")+ data.get("intro-prompt", ""):
+                flash("Backticks (`) are not allowed in the prompts. You can use both simple or double quotes.", category='error' );
+                return render_template("search.html", 
+                           input_data=to_tuples(input_data['keywords']),
+                           user=current_user.dict_data(),
+                           prompt=prompt,
+                           intro_prompt=intro_prompt,
+                           existing = search_id is not None)
+
 
             try:
                 limit_st = int(
@@ -145,17 +170,24 @@ def search():
                     if not flag_bkg.is_set():
                         stopper.clear()
 
-                        input_data = read_data()
+                        print("Submitted form. Intro prompt: " + data.get('intro-prompt', "ERROR"))
+
+                        input_data = {
+                            'keywords': read_data(),
+                            'prompt': data.get('prompt', current_user.default_prompt),
+                            'intro-prompt': data.get('intro-prompt', current_user.default_intro_prompt)
+                        }
                         time_to_complete = 20*limit_st * \
-                            len(set(input_data['keyword'].values))
+                            len(set(input_data['keywords']['keyword'].values))
 
 
                         new_search = Search(  # Create search without file path
                             user=current_user.username,
                             user_id=current_user.id,
-                            keywords=input_data.to_json(),
-                            csv_path="In progress",
-                            html_path="In progress",
+                            keywords=input_data['keywords'].to_json(),
+                            status="In progress",
+                            prompt=input_data['prompt'],
+                            intro_prompt=input_data['intro-prompt'],
                             by_artist=0
                         )
                         db.session.add(new_search)
@@ -173,6 +205,17 @@ def search():
                         })
 
                         thread.start()
+
+
+                        #   Set default prompts if selected
+                        if data.get('default-prompt', "") == 'limited':
+                            current_user.default_prompt = input_data['prompt']
+                            prompt=input_data['prompt']
+                        if data.get('default-intro-prompt', "") == 'limited':
+                            current_user.default_intro_prompt = input_data['intro-prompt']
+                            intro_prompt=input_data['intro-prompt']
+                        
+                        db.session.commit()
                         flash(
                             f'Search running in background. Check the search history in about {int(time_to_complete/60)+1} minutes for the download link.', category='success')
                     else:
@@ -182,17 +225,36 @@ def search():
             except ValueError:
                 flash("An error happened. Try again.", category='error')
 
-    input_data_tuple = to_tuples(input_data)
-    return render_template("search.html", input_data=input_data_tuple, download_link=filename, user=current_user)
+
+
+    input_data_tuple = to_tuples(input_data['keywords'])
+    return render_template("search.html", 
+                           input_data=input_data_tuple,
+                           user=current_user.dict_data(),
+                           prompt=prompt,
+                           intro_prompt=intro_prompt,
+                           existing = search_id is not None)
 
 
 @views.route('/search-by-artist', methods=['GET', 'POST'])
 @login_required
 def search_by_artist():
     global input_data, flag_bkg, app, stopper
-    filename = ''
+    prompt = current_user.default_prompt_artist
+    intro_prompt = current_user.default_intro_prompt_artist
+    artist=""
+    search_id = request.args.get('search_id', None)
 
-    if request.method == 'POST':
+    if request.method == 'GET':
+        if search_id is not None:
+            flash('Input data restored.', category='success')
+            search = Search.query.get(search_id)
+
+            prompt = search.prompt
+            intro_prompt = search.intro_prompt
+            artist = search.keywords
+
+    elif request.method == 'POST':
         data = json.loads(request.data)
 
         try:
@@ -208,12 +270,19 @@ def search_by_artist():
 
                     time_to_complete = 20*limit_st
 
+                    input_data = {
+                        "name":data['artist-name'],
+                        "id":data['artist-id'],
+                        'prompt': data.get('prompt', current_user.default_prompt),
+                        'intro-prompt': data.get('intro-prompt', current_user.default_intro_prompt_artist)
+                    }
                     new_search = Search(  # Create search without file path
                         user=current_user.username,
                         user_id=current_user.id,
-                        keywords=data['artist-name'],
-                        csv_path="In progress",
-                        html_path="In progress",
+                        keywords=input_data['name'],
+                        status="In progress",
+                        prompt=input_data['prompt'],
+                        intro_prompt=input_data['intro-prompt'],
                         by_artist=1
                     )
                     db.session.add(new_search)
@@ -222,7 +291,7 @@ def search_by_artist():
                     thread = threading.Thread(target=background_search, kwargs={
                         'local_app': app,
                         'local_db': db,
-                        'input_data': {"name":data['artist-name'], "id":data['artist-id']},
+                        'input_data': input_data,
                         'limit': limit_st,
                         'offset': offset,
                         'search_id': search_id,
@@ -232,6 +301,15 @@ def search_by_artist():
                     })
 
                     thread.start()
+                    #   Set default prompts if selected
+                    if data.get('default-prompt', False):
+                        current_user.default_prompt_artist = input_data['prompt']
+                        prompt=input_data['prompt']
+                    if data.get('default-intro-prompt', False):
+                        current_user.default_intro_prompt_artist = input_data['intro-prompt']
+                        intro_prompt=input_data['intro-prompt']
+                    
+                    db.session.commit()
                     flash(
                         f'Search running in background. Check the search history in about {int(time_to_complete/60)+1} minutes for the download link.', category='success')
                 else:
@@ -243,7 +321,12 @@ def search_by_artist():
         
         return jsonify({})
 
-    return render_template("search_by_artist.html", user=current_user)
+    return render_template("search_by_artist.html",
+                           user=current_user.dict_data(),
+                           prompt=prompt,
+                           intro_prompt=intro_prompt,
+                           artist = artist,
+                           existing = search_id is not None)
 
 
 @views.route('/history', methods=['GET'])
@@ -252,8 +335,7 @@ def history():
 
     return render_template("history.html",
                            user=current_user,
-                           searches=Search.query.filter_by(user_id=current_user.id).order_by(
-                               Search.date.desc()).all(),
+                           searches=Search.query.order_by(Search.date.desc()).all(),
                            json_load=json.loads,
                            set=set)
 
@@ -265,10 +347,10 @@ def delete_row():
     data = json.loads(request.data)
     idx = data['idx']
 
-    input_data = read_data()
-    input_data.drop(index=idx, inplace=True)
+    input_data['keywords'] = read_data()
+    input_data['keywords'].drop(index=idx, inplace=True)
 
-    save_input_data(input_data)
+    save_input_data(input_data['keywords'])
     flash('Keyword deleted.', category='error')
 
     return jsonify({})
@@ -283,19 +365,15 @@ def delete_search(flash_msg=True, idx=None):
         idx = json.loads(request.data)['idx']
     search = Search.query.get(idx)
 
-    if search.csv_path != "In progress":
-        filepath = os.path.join(
-            views.root_path, 'model_outputs', search.csv_path)
-        if os.path.exists(filepath):
-            print(f"File path to be deleted: {filepath}")
-            os.remove(filepath)
-    else:
+    if search.status == "In progress":
         stopper.set()
         flag_bkg.clear()
         if flash_msg: flash("The search was stopped", category='error')
+        search.status = "Stopped"
         flash_msg = False
-
-    db.session.delete(search)
+    else:
+        db.session.delete(search)
+    
     db.session.commit()
 
     if flash_msg:
@@ -312,9 +390,9 @@ def clear(flash_msg=True, what_to_clear=None):
     if what_to_clear is None:
         what_to_clear = json.loads(request.data)['what_to_clear']
     if what_to_clear == 'input':
-        input_data = pd.DataFrame(columns=['keyword', 'sp_keyword'])
+        input_data['keywords'] = pd.DataFrame(columns=['keyword', 'sp_keyword'])
 
-        save_input_data(input_data)
+        save_input_data(input_data['keywords'])
         if flash_msg:
             flash('Input data cleared.', category='error')
 
@@ -322,20 +400,6 @@ def clear(flash_msg=True, what_to_clear=None):
         for search in Search.query.all():
             delete_search(flash_msg=False, idx=search.id)
         flash('Search history cleared.', category='error')
-
-    return jsonify({})
-
-
-@views.route('/repeat_search', methods=['POST'])
-def repeat_search():
-    global input_data
-    search_input = json.loads(request.data)['keyword']
-
-    clear(flash_msg=False, what_to_clear='input')
-    input_data = pd.DataFrame(search_input)
-
-    save_input_data(input_data)
-    flash('Input data restored.', category='success')
 
     return jsonify({})
 

@@ -16,16 +16,30 @@ function delete_row(idx, table) {
   }
 }
 
-function repeat_search(keyword_json) {
-  fetch("/repeat_search", {
-    method: "POST",
-    body: JSON.stringify({ keyword: keyword_json }),
-  }).then((_res) => {
-    window.location.href = "/search";
-  });
+function showAlert(text) {
+  console.log("OK");
+  window.alert(text);
+}
+
+function repeat_search(id, by_artist) {
+  if (by_artist == 0) {
+    window.location.href = "/search?search_id=" + id;
+  } else {
+    window.location.href = "/search-by-artist?search_id=" + id;
+  }
 }
 
 function search_artist() {
+  if (
+    $("#intro-prompt").val().includes("`") ||
+    $("#prompt").val().includes("`")
+  ) {
+    alert(
+      "Backticks (`) are not allowed in the prompts. You can use both simple or double quotes."
+    );
+    return;
+  }
+
   let search_string = $("#artist").val();
   fetch("/api/search-artist/?artist=" + search_string, {
     method: "GET",
@@ -58,6 +72,10 @@ function search_by_artist(artist_name, artist_id) {
     "check-limit-kw": $("#check-limit-kw").is(":checked") ? 1 : null,
     "check-offset": $("#check-offset").is(":checked") ? 1 : null,
     wordpress: $("#wordpress").is(":checked") ? 1 : false,
+    prompt: $("#prompt").val(),
+    "intro-prompt": $("#intro-prompt").val(),
+    "default-intro-prompt": $("#default-intro-prompt").is(":checked"),
+    "default-prompt": $("#default-prompt").is(":checked"),
   };
   console.log(body);
 
@@ -78,7 +96,39 @@ function clear_table(what_to_clear) {
   });
 }
 
+var default_prompt = $("#user-default-prompt").text();
+var default_intro_prompt = $("#user-default-intro-prompt").text();
+
 $(document).ready(function () {
+  $("#check-prompt").on("change", function () {
+    let disable = $("#check-prompt").is(":checked");
+    if (disable) {
+      $("#prompt").attr("disabled", true);
+      $("#prompt-rules").attr("hidden", true);
+      $("#prompt").val(default_prompt);
+      $("#prompt-div").attr("hidden", true);
+      $("#default-prompt").attr("checked", false);
+    } else {
+      $("#prompt").attr("disabled", false);
+      $("#prompt-rules").attr("hidden", false);
+      $("#prompt-div").attr("hidden", false);
+    }
+  });
+  $("#check-intro-prompt").on("change", function () {
+    let disable = $("#check-intro-prompt").is(":checked");
+    if (disable) {
+      $("#intro-prompt").attr("disabled", true);
+      $("#intro-prompt-rules").attr("hidden", true);
+      $("#intro-prompt").val(default_intro_prompt);
+      $("#intro-prompt-div").attr("hidden", true);
+      $("#default-intro-prompt").attr("checked", false);
+    } else {
+      $("#intro-prompt").attr("disabled", false);
+      $("#intro-prompt-rules").attr("hidden", false);
+      $("#intro-prompt-div").attr("hidden", false);
+    }
+  });
+
   $("#check-limit-kw").on("change", function () {
     let able = $("#check-limit-kw").is(":checked");
     if (able) {
