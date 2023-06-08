@@ -108,6 +108,9 @@ def background_search(local_app, local_db, input_data, limit, offset, search_id,
 @views.route('/search', methods=['GET', 'POST'])
 @login_required
 def search():
+    
+    print("ACA")
+    print(keys)
 
     global input_data, flag_bkg, app, stopper
     prompt = current_user.default_prompt
